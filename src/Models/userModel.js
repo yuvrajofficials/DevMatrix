@@ -52,6 +52,16 @@ const userSchema = new Schema(
         type: String,
       }
     ],
+     uploadedresource: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "resourceModel",
+      },
+    ],
+    mycart:[{
+      type: Schema.Types.ObjectId,
+      ref: "courseModel",
+    }],
     refreshToken: {
       type: String,
       default: ""

@@ -3,7 +3,9 @@ import {registerController, loginController,uploadedVideo} from '../Controllers/
 import {saveNotification,getNotification} from '../Controllers/notificationController.js';
 
 import { uploadOnCloudinary } from "../Utils/Cloudanary.js";
-import { getAllCourse } from "../Controllers/courseController.js";
+import { addToCart, getAllCourse, getCourseDetails } from "../Controllers/courseController.js";
+import { validateToken } from "../Middlewares/validateToken.js";
+import { getAllBlogs, getSpecificComment, saveComment } from "../Controllers/blogController.js";
 
 
 const app = express();
@@ -22,8 +24,14 @@ userRouter.post('/register', registerController)
 
 userRouter.post('/save-notification',saveNotification)
 userRouter.get('/get-notification',getNotification)
-userRouter.get('/get-allcourse',getAllCourse);
+userRouter.post('/save-addtocart',validateToken,addToCart);
+userRouter.post('/get-course-details',getCourseDetails);
+userRouter.post('/:blogId/save-comment',saveComment);
+userRouter.get('/:blogId',getSpecificComment);
 
+userRouter.post('/get-allcourse',getAllCourse);
+
+userRouter.post('/get-allblogs', getAllBlogs);
 
 export default userRouter
 

@@ -80,22 +80,22 @@ const loginController = async (req, res) => {
     //validation
     if (!userdata || !password) {
       console.log(userdata,password);
-      throw new ApiError(404,"Invalid username or password");
+       new ApiResponse(404,"Invalid username or password");
     }
     //check user
     const user = await userModel.findOne({ username:userdata }) || await userModel.findOne({ email:userdata });
     if (!user) {
-      throw new ApiError(404,"User is not registered");
+      new ApiResponse(404,"User is not registered");
     }
     const match = await comparePassword(password, user.password);
     if (!match) {
-      throw new ApiError(404,"Invalid Password");
+       new ApiResponse(404,"Invalid Password");
 
     }
     //token
     const token = JWT.sign({
       data: user.username
-    },  process.env.ACCESS_TOKEN_SECRET, { expiresIn: 60 * 60 });
+    },  process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRY });
 
     user.refreshToken = token;
     await user.save();

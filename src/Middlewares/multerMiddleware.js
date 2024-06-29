@@ -23,17 +23,17 @@ const uploadV = multer({
   { name: 'thumbnail', maxCount: 1 }
 ])
 
-
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "./public/temp"); // Specify the destination directory
+    cb(null, './public/temp'); // Specify the destination directory
   },
   filename: function (req, file, cb) {
     cb(null, file.originalname); // Use the original file name
   }
 });
 
-const uploadP = multer({ storage });
-export { uploadV,uploadP };
+const uploadR = multer({ storage: storage });
+
+export { uploadV,uploadR };
 
 

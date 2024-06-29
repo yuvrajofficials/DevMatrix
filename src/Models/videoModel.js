@@ -46,3 +46,19 @@ const videoSchema = new Schema(
 videoSchema.plugin(mongooseAggregatePaginate);
 export const videoModel = mongoose.model("videoModel", videoSchema);
 
+const resourceSchema = new Schema({
+
+  userId:{
+    type : Schema.Types.ObjectId,
+    ref:"userModel"
+  },
+  title:{
+    type: String
+  },
+  resourceUrl:{
+    type : String
+  }
+
+})
+
+export const resourceModel = mongoose.model("resourceModel",resourceSchema);

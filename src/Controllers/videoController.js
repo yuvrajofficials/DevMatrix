@@ -2,14 +2,14 @@ import express from "express";
 import asyncHandler from '../Utils/asyncHandler.js'; // Assuming this handles async errors
 import { ApiError } from "../Utils/ApiError.js"; // Assuming you have a custom error class
 import { ApiResponse } from "../Utils/APIResponse.js"; // Assuming you have a custom response class
-import { videoModel } from "../Models/videoModel.js";
+import { resourceModel, videoModel } from "../Models/videoModel.js";
 import { courseModel } from "../Models/courseModel.js";
-import { uploadV,uploadP } from "../Middlewares/multerMiddleware.js";
 import { uploadOnCloudinary } from "../Utils/Cloudanary.js";
 import {v2 as cloudinary} from "cloudinary";
 import multer from "multer";
 import fs from "fs";
 import mongoose from "mongoose";
+import { userModel } from "../Models/userModel.js";
 
 
 const uploadVideo = asyncHandler(async (req, res) => {
@@ -78,6 +78,38 @@ const getVideo = asyncHandler(async (req, res) => {
 });
 
 
+const uploadResource = asyncHandler(async (req, res) => {
+  const { title, userId } = req.body;
+  const resourceFile = req.file.path;
+
+  try {
+    // Upload resource to Cloudinary
+    const resourceUpload = await cloudinary.uploader.upload(resourceFile, {
+      folder: 'resources'
+    });
+
+    // Create a new resource document
+    const newResource = new resourceModel({
+      userId,
+      title,
+      resourceUrl: resourceUpload.secure_url
+    });
+
+    const uploadedResource = await newResource.save();
+
+    // Update the user to include the new resource's ID
+    await userModel.findByIdAndUpdate(userId, { $push: { resources: uploadedResource._id } });
+
+    res.status(200).json(new ApiResponse(true, uploadedResource));
+  } catch (error) {
+    console.error('Error uploading resource:', error);
+    throw new ApiError(500, 'Internal Server Error');
+  } finally {
+    // Cleanup: Remove the local file after uploading to Cloudinary
+    fs.unlinkSync(resourceFile);
+  }
+});
 
 
-  export {uploadVideo,getVideo};
+
+  export {uploadVideo,getVideo,uploadResource};

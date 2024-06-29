@@ -12,7 +12,13 @@ const courseSchema = new Schema({
   },
   thumbnail: {
     type: String,
-    default:"",
+    default: "",
+  },
+  price: {
+    type: String,
+  },
+  description: {
+    type: String,
   },
   slug: {
     type: String,
@@ -31,3 +37,25 @@ const courseSchema = new Schema({
 });
 
 export const courseModel = mongoose.model("courseModel", courseSchema);
+
+const addCartSchema = new Schema({
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: "userModel"
+  },
+  courseId: {
+    type: Schema.Types.ObjectId,
+    ref: "courseModel"
+  },
+  resourceUrl: {
+    type: String,
+  }
+
+
+},
+  {
+    timestamps: true,
+  })
+
+
+export const addCartModel = mongoose.model("addCartModel", addCartSchema);
