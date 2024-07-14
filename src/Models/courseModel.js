@@ -1,5 +1,13 @@
 import mongoose, { Schema } from "mongoose";
 
+const discussionSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'userModel' },
+  discussion: { type: String},
+  date: { type: Date, default: Date.now },
+});
+
+
+
 const courseSchema = new Schema({
   title: {
     type: String,
@@ -28,6 +36,7 @@ const courseSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "userModel",
   },
+  discussion: [discussionSchema],
   videos: [
     {
       type: Schema.Types.ObjectId,
@@ -41,7 +50,8 @@ export const courseModel = mongoose.model("courseModel", courseSchema);
 const addCartSchema = new Schema({
   userId: {
     type: Schema.Types.ObjectId,
-    ref: "userModel"
+    ref: "userModel",
+    
   },
   courseId: {
     type: Schema.Types.ObjectId,

@@ -1,7 +1,7 @@
 {
   "name": "devmatrix",
   "version": "1.0.0",
-  "description": "",
+  "description": "��#\u0000 \u0000D\u0000e\u0000v\u0000M\u0000a\u0000t\u0000r\u0000i\u0000x\u0000\r\u0000 \u0000",
   "main": "index.js",
   "type": "module",
   "scripts": {
@@ -21,6 +21,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "http": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.4.0",
     "mongoose-aggregate-paginate-v2": "^1.0.7",

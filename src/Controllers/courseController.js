@@ -6,7 +6,7 @@ import { addCartModel, courseModel } from "../Models/courseModel.js";
 import slugify from "slugify";
 import { userModel } from "../Models/userModel.js";
 import mongoose from "mongoose";
-import {v2 as cloudinary} from "cloudinary";
+import { v2 as cloudinary } from "cloudinary";
 import multer from "multer";
 import fs from "fs";
 
@@ -14,7 +14,7 @@ import fs from "fs";
 // Create a new course
 // export const createCourse = asyncHandler(async (req, res) => {
 //   const { title, creator, owner } = req.body;
- 
+
 //   try {
 //     console.log("almost done")
 //     const isExist = await courseModel.findOne({ title });
@@ -34,8 +34,8 @@ import fs from "fs";
 //       owner,
 //       slug: slugify(title).toLowerCase()
 //     })
-    
-    
+
+
 //     const createdCourse = await newCourse.save();
 //     res.status(200).json({ success: true, data: createdCourse });
 //   } catch (error) {
@@ -47,7 +47,7 @@ import fs from "fs";
 
 
 export const createCourse = asyncHandler(async (req, res) => {
-  const { title, creator, owner,price,description, } = req.body;
+  const { title, creator, owner, price, description, } = req.body;
   const resourceFile = req.file.path;
 
   try {
@@ -69,12 +69,12 @@ export const createCourse = asyncHandler(async (req, res) => {
       price,
       description,
       owner,
-      slug: slugify(title).toLowerCase(),      
+      slug: slugify(title).toLowerCase(),
       thumbnail: resourceUpload.secure_url
     })
 
     // Create a new resource document
-    
+
 
     const createdCourse = await newCourse.save();
 
@@ -106,7 +106,7 @@ export const getAllCourse = asyncHandler(async (req, res) => {
 
 export const getCourse = asyncHandler(async (req, res) => {
   try {
-    
+
     const result = courseModel.aggregate([
       {
         $match: {
@@ -115,21 +115,21 @@ export const getCourse = asyncHandler(async (req, res) => {
       },
       {
         $project: {
-          videos:1,
-          title:1,
+          videos: 1,
+          title: 1,
 
 
         }
       }
     ]).exec()
-    .then(results => {
-      res.status(200).json({ success: true, data: results });
-      // Process aggregated results here
-    })
-    .catch(err => {
-      console.error('Error executing aggregation:', err);
-    });
-    
+      .then(results => {
+        res.status(200).json({ success: true, data: results });
+        // Process aggregated results here
+      })
+      .catch(err => {
+        console.error('Error executing aggregation:', err);
+      });
+
   } catch (error) {
     console.error('Error in Getting Courses:', error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -142,39 +142,48 @@ export const getMyCreatedCourse = asyncHandler(async (req, res) => {
     console.log(owner)
     const mycourses = await userModel.aggregate([
       {
-    $match: { $expr : { $eq: [ '$_id' , { $toObjectId: "66593646539123f80e552f6c" } ]  } }
-     
- 
-    },
-    {
-      $lookup: {
-        from: "coursemodels", // Ensure this matches the actual collection name
-        localField: "_id",
-        foreignField: "owner",
-        as: "mycourses"
-      }
-    },
-    {
-      $project: {
-        mycourses: 1
-      }
-      
-    },{
-      $unwind: {
-        path: "$mycourses"
-      }
-    },{
-       $project: {
-         "mycourses.title" :  1,
-         "mycourses._id" :  1,
-         
-              
-       }
-    
-    
-    }
+                "$match": {
+          "$expr": {
+            "$eq": [
+              "$_id",
+              {
+                "$toObjectId": owner,
+              }
+            ]
+          }
+        }
 
-]);
+
+      },
+      {
+        $lookup: {
+          from: "coursemodels", // Ensure this matches the actual collection name
+          localField: "_id",
+          foreignField: "owner",
+          as: "mycourses"
+        }
+      },
+      {
+        $project: {
+          mycourses: 1
+        }
+
+      }, {
+        $unwind: {
+          path: "$mycourses"
+        }
+      }, {
+        $project: {
+          "mycourses.title": 1,
+          "mycourses._id": 1,
+
+
+        }
+
+
+      }
+
+    ]);
 
     res.status(200).json({ success: true, data: mycourses });
   } catch (error) {
@@ -185,60 +194,201 @@ export const getMyCreatedCourse = asyncHandler(async (req, res) => {
 
 
 export const addToCart = asyncHandler(async (req, res) => {
-  const { userId,courseId } = req.body;
- 
-  try {
-    console.log("almost done")
-    const isExist = await userModel.findOne({ userId }) && await userId.findOne({ courseId });
+  const { userId, courseId } = req.body;
 
-    if (isExist) {
-      res.status(200).json(new ApiResponse(false, "Course Already added to cart"));
+  try {
+    const user = await userModel.findById(userId);
+
+    if (!user) {
+      return res.status(404).json(new ApiResponse(false, "User not found"));
     }
-    
-    await userModel.findByIdAndUpdate(userId, { $push: { mycart: courseId } });
-  
-    res.status(200).json(new ApiResponse(true, "sucessful"));
+
+    // Check if the course is already in the user's cart
+    if (user.mycart.includes(courseId)) {
+      return res.status(200).json(new ApiResponse(true, "Already added to cart"));
+    }
+
+    // Add the course to the user's cart        
+    user.mycart.push(courseId);
+    await user.save();
+
+    res.status(200).json(new ApiResponse(true, "Course added to cart successfully"));
   } catch (error) {
-    console.error('Error Adding to cart ', error);
+    console.error('Error adding to cart', error);
     throw new ApiError(500, 'Internal Server Error');
   }
-    
-  
-}); 
+});
 
 
 export const getCourseDetails = asyncHandler(async (req, res) => {
   try {
     const { courseId } = req.body;
-    
+
     const courseDetails = await courseModel.aggregate([
-      
-        {
-          $match: {
-            $expr: {
-              $eq: [
-                "$_id",
-                {
-                  $toObjectId:
-                    "667708431e6ba6949ffd8300"
-                }
-              ]
-            }
+
+      {        "$match": {
+          "$expr": {
+            "$eq": [
+              "$_id",
+              {
+                "$toObjectId": courseId,
+              }
+            ]
           }
-        },
-        {
+        }
+       },
+      {
         $lookup: {
           from: "videomodels",
           localField: "videos",
           foreignField: "_id",
           as: "videodetails"
         }
-        }
-      
+      }
+
     ])
     res.status(200).json({ success: true, data: courseDetails });
   } catch (error) {
     console.error('Error in Getting Courses:', error);
     res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+export const getSpecificDiscussion = asyncHandler(async (req, res) => {
+  const { courseId } = req.params;
+
+  try {
+    const courseData = await courseModel.aggregate([
+      {
+        "$match": {
+          "$expr": {
+            "$eq": [
+              "$_id",
+              {
+                "$toObjectId": courseId,
+              }
+            ]
+          }
+        }
+      },
+      {
+        "$lookup": {
+          "from": "usermodels",
+          "localField": "comments.user",
+          "foreignField": "_id",
+          "as": "commentUsers"
+        }
+      },
+      {
+        "$unwind": {
+          "path": "$comments",
+          "preserveNullAndEmptyArrays": true
+        }
+      },
+      {
+        "$lookup": {
+          "from": "usermodels",
+          "localField": "comments.user",
+          "foreignField": "_id",
+          "as": "commentUserDetails"
+        }
+      },
+      {
+        "$unwind": {
+          "path": "$commentUserDetails",
+          "preserveNullAndEmptyArrays": true
+        }
+      },
+      {
+        "$group": {
+          "_id": "$_id",
+          "thumbnail": { "$first": "$thumbnail" },
+          "title": { "$first": "$title" },
+          "abstract": { "$first": "$abstract" },
+          "author": { "$first": "$author" },
+          "isPublished": { "$first": "$isPublished" },
+          "description": { "$first": "$description" },
+          "userId": { "$first": "$userId" },
+          "comments": {
+            "$push": {
+              "comment": "$comments",
+              "userDetails": "$commentUserDetails"
+            }
+          }
+        }
+      },
+      {
+        "$lookup": {
+          "from": "usermodels",
+          "localField": "userId",
+          "foreignField": "_id",
+          "as": "result"
+        }
+      },
+      {
+        "$project": {
+          "_id": 1,
+          "thumbnail": 1,
+          "title": 1,
+          "abstract": 1,
+          "author": 1,
+          "isPublished": 1,
+          "description": 1,
+          "userId": 1,
+          "comments.comment": 1,
+          "comments.userDetails.username": 1,
+          "comments.userDetails.avatar": 1,
+          "result.username": 1,
+          "result.avatar": 1
+        }
+      }
+
+
+    ]);
+
+    res.status(200).json(blogData);
+  } catch (error) {
+    res.status(500).json({ message: 'An error occurred', error });
+  }
+})
+export const saveDiscussion = asyncHandler(async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const { userId, discussion } = req.body;
+    console.log('Incoming Data:', { courseId, userId, discussion });
+
+    // Find the user making the comment (optional, if you need to verify user)
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    console.log('User found:', user);
+
+    // Find the course to add the discussion to
+    const course = await courseModel.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+    console.log('Course found:', course);
+
+    // Create the new discussion
+    const newDiscussion = {
+      user: userId,
+      discussion: discussion,
+      date: new Date()
+    };
+    console.log('New Discussion:', newDiscussion);
+
+    // Add the discussion to the course's discussion array
+    course.discussion.push(newDiscussion);
+    await course.save();
+
+    console.log('Discussion saved successfully');
+
+    res.status(201).json({ message: 'Your discussion added successfully', course });
+  } catch (error) {
+    console.error('Error occurred:', error);
+    res.status(500).json({ message: 'An error occurred', error });
   }
 });

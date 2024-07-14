@@ -1,7 +1,7 @@
 import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { notificationModel } from "../Models/notificationModel.js";
+import { notificationModel,reviewModel } from "../Models/notificationModel.js";
 import asyncHandler from '../Utils/asyncHandler.js'
 
 
@@ -33,6 +33,37 @@ const getNotification = asyncHandler( async (req, res) => {
   });
 
 
+  
+const saveReviews = async (req, res) => {
+  const { name, email,ratings, message } = req.body;
+
+   
+
+  try {
+    const newReview = new reviewModel({ name, email, message,ratings });
+    console.log(newReview)
+    const savedReview = await newReview.save();
+    res.status(200).json({ success: true, data: savedReview });
+  } catch (error) {
+    console.error('Error Saving Review:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+  
+  
+
+const getReviews = asyncHandler( async (req, res) => {
+  try {
+      const reviews = await reviewModel.find({});
+      res.json(reviews);
+  } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
+
     
 
-export {saveNotification,getNotification}
+export {saveNotification,getNotification,saveReviews,getReviews}

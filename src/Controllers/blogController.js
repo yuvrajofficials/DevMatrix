@@ -111,41 +111,91 @@ export const getAllBlogs = asyncHandler(async (req, res) => {
 
     try {
         const blogData = await blogModel.aggregate([
-            {
-                $match: {
-                    $expr: {
-                        $eq: [
-                            "$_id",
-                            {
-                                $toObjectId: blogId
-                            }
-                        ]
+                {
+                  "$match": {
+                    "$expr": {
+                      "$eq": [
+                        "$_id",
+                        {
+                          "$toObjectId": "667e6d7397c051b1e88caf93"
+                        }
+                      ]
                     }
-                }
-            },
-            {
-                $lookup: {
-                    from: "usermodels",
-                    localField: "userId",
-                    foreignField: "_id",
-                    as: "result"
-                }
-            },
-            {
-                $project: {
-                    _id: 1,
-                    thumbnail: 1,
-                    title: 1,
-                    abstract: 1,
-                    author: 1,
-                    isPublished: 1,
-                    comments: 1,
-                    description: 1,
-                    userId: 1,
+                  }
+                },
+                {
+                  "$lookup": {
+                    "from": "usermodels",
+                    "localField": "comments.user",
+                    "foreignField": "_id",
+                    "as": "commentUsers"
+                  }
+                },
+                {
+                  "$unwind": {
+                    "path": "$comments",
+                    "preserveNullAndEmptyArrays": true
+                  }
+                },
+                {
+                  "$lookup": {
+                    "from": "usermodels",
+                    "localField": "comments.user",
+                    "foreignField": "_id",
+                    "as": "commentUserDetails"
+                  }
+                },
+                {
+                  "$unwind": {
+                    "path": "$commentUserDetails",
+                    "preserveNullAndEmptyArrays": true
+                  }
+                },
+                {
+                  "$group": {
+                    "_id": "$_id",
+                    "thumbnail": { "$first": "$thumbnail" },
+                    "title": { "$first": "$title" },
+                    "abstract": { "$first": "$abstract" },
+                    "author": { "$first": "$author" },
+                    "isPublished": { "$first": "$isPublished" },
+                    "description": { "$first": "$description" },
+                    "userId": { "$first": "$userId" },
+                    "comments": {
+                      "$push": {
+                        "comment": "$comments",
+                        "userDetails": "$commentUserDetails"
+                      }
+                    }
+                  }
+                },
+                {
+                  "$lookup": {
+                    "from": "usermodels",
+                    "localField": "userId",
+                    "foreignField": "_id",
+                    "as": "result"
+                  }
+                },
+                {
+                  "$project": {
+                    "_id": 1,
+                    "thumbnail": 1,
+                    "title": 1,
+                    "abstract": 1,
+                    "author": 1,
+                    "isPublished": 1,
+                    "description": 1,
+                    "userId": 1,
+                    "comments.comment": 1,
+                    "comments.userDetails.username": 1,
+                    "comments.userDetails.avatar": 1,
                     "result.username": 1,
                     "result.avatar": 1
+                  }
                 }
-            }
+              
+              
         ]);
         
         res.status(200).json(blogData);

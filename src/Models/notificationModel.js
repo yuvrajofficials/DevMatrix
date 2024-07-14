@@ -19,3 +19,24 @@ const notificationSchema = new Schema({
 
 
 export const notificationModel = mongoose.model('notificationModel',notificationSchema)
+
+
+const reviewSchema = new Schema({
+  name: {
+    type: String,
+  },
+  email: {
+    type: String,
+  },
+  ratings: {
+    type: Number,
+  },
+  message: {
+    type: String,
+  },
+},{
+  timestamps: true,
+});
+
+
+export const reviewModel = mongoose.model('reviewModel',reviewSchema)
