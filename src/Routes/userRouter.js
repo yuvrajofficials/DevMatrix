@@ -3,7 +3,7 @@ import {registerController, loginController,uploadedVideo} from '../Controllers/
 import {saveNotification,getNotification, getReviews, saveReviews} from '../Controllers/notificationController.js';
 
 import { uploadOnCloudinary } from "../Utils/Cloudanary.js";
-import { addToCart, getAllCourse, getCourseDetails, getSpecificDiscussion, saveDiscussion } from "../Controllers/courseController.js";
+import { addToCart,getAllCourse, getCourseDetails, getSpecificDiscussion, getTutorDetails, saveDiscussion } from "../Controllers/courseController.js";
 import { validateToken } from "../Middlewares/validateToken.js";
 import { getAllBlogs, getSpecificComment, saveComment } from "../Controllers/blogController.js";
 import { getActualCount } from "../Controllers/othersController.js";
@@ -33,14 +33,19 @@ userRouter.post('/get-course-details',getCourseDetails);
 
 
 userRouter.post('/:blogId/save-comment',saveComment);
-userRouter.get('/:blogId',getSpecificComment);
+userRouter.get('/blog/:blogId',getSpecificComment);
 userRouter.post('/:courseId/save-discussion',saveDiscussion);
-userRouter.get('/:courseId',getSpecificDiscussion);
+userRouter.post('/:courseId',getSpecificDiscussion);
 
-userRouter.post('/get-allcourse',getAllCourse);
-userRouter.post('/get-allblogs', getAllBlogs);
+userRouter.get('/get-allcourse',getAllCourse);
+userRouter.get('/get-allblogs', getAllBlogs);
+// userRouter.post('/get-everyblog', getEveryBlog);
 
-userRouter.post('/countdata',getActualCount);
+
+userRouter.get('/countdata',getActualCount);
+userRouter.post('/:tutorId',getTutorDetails);
+
+
+
 
 export default userRouter
-

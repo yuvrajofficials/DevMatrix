@@ -61,51 +61,16 @@ export const createBlog = asyncHandler(async (req, res) => {
 
 export const getAllBlogs = asyncHandler(async (req, res) => {
     try {
-      const blogs = await blogModel.aggregate([
-        {
-          $match: {
-            $expr: {
-              $eq: [
-                "$_id",
-                {
-                  $toObjectId:
-                    "667e6d7397c051b1e88caf93"
-                }
-              ]
-            }
-          }
-        },
-        {
-          $lookup: {
-            from: "usermodels",
-            localField: "userId",
-            foreignField: "_id",
-            as: "result"
-          }
-        },
-        {
-          $project: {
-            _id: 1,
-            thumbnail: 1,
-            title: 1,
-            abstract: 1,
-            author: 1,
-            isPublished: 1,
-            comments: 1,
-            description: 1,
-            userId: 1,
-            "result.username": 1,
-            "result.avatar": 1
-          }
-        }
-      ]);
+      const blogs = await blogModel.find({});
       res.status(200).json({ success: true, data: blogs });
     } catch (error) {
-      console.error('Error in Getting Courses:', error);
+      console.error('Error in Getting Blogs:', error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
+  
 
+  // error code
   export const getSpecificComment = asyncHandler(async (req, res) => {
     const { blogId } = req.params;
 

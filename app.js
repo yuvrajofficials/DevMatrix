@@ -16,7 +16,7 @@ app.use(express.static("public"))
 app.use(cookieParser())
 
 var corsOptions = {
-    origin: '*',
+    origin: "*",
   }
 
 app.use('/api/v1/users',cors(corsOptions), userRouter);

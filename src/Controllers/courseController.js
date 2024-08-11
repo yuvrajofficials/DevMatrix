@@ -8,7 +8,7 @@ import { userModel } from "../Models/userModel.js";
 import mongoose from "mongoose";
 import { v2 as cloudinary } from "cloudinary";
 import multer from "multer";
-import fs from "fs";
+import fs, { readSync } from "fs";
 
 
 // Create a new course
@@ -260,90 +260,7 @@ export const getSpecificDiscussion = asyncHandler(async (req, res) => {
 
   try {
     const courseData = await courseModel.aggregate([
-      {
-        "$match": {
-          "$expr": {
-            "$eq": [
-              "$_id",
-              {
-                "$toObjectId": courseId,
-              }
-            ]
-          }
-        }
-      },
-      {
-        "$lookup": {
-          "from": "usermodels",
-          "localField": "comments.user",
-          "foreignField": "_id",
-          "as": "commentUsers"
-        }
-      },
-      {
-        "$unwind": {
-          "path": "$comments",
-          "preserveNullAndEmptyArrays": true
-        }
-      },
-      {
-        "$lookup": {
-          "from": "usermodels",
-          "localField": "comments.user",
-          "foreignField": "_id",
-          "as": "commentUserDetails"
-        }
-      },
-      {
-        "$unwind": {
-          "path": "$commentUserDetails",
-          "preserveNullAndEmptyArrays": true
-        }
-      },
-      {
-        "$group": {
-          "_id": "$_id",
-          "thumbnail": { "$first": "$thumbnail" },
-          "title": { "$first": "$title" },
-          "abstract": { "$first": "$abstract" },
-          "author": { "$first": "$author" },
-          "isPublished": { "$first": "$isPublished" },
-          "description": { "$first": "$description" },
-          "userId": { "$first": "$userId" },
-          "comments": {
-            "$push": {
-              "comment": "$comments",
-              "userDetails": "$commentUserDetails"
-            }
-          }
-        }
-      },
-      {
-        "$lookup": {
-          "from": "usermodels",
-          "localField": "userId",
-          "foreignField": "_id",
-          "as": "result"
-        }
-      },
-      {
-        "$project": {
-          "_id": 1,
-          "thumbnail": 1,
-          "title": 1,
-          "abstract": 1,
-          "author": 1,
-          "isPublished": 1,
-          "description": 1,
-          "userId": 1,
-          "comments.comment": 1,
-          "comments.userDetails.username": 1,
-          "comments.userDetails.avatar": 1,
-          "result.username": 1,
-          "result.avatar": 1
-        }
-      }
-
+  
 
     ]);
 
@@ -356,7 +273,7 @@ export const saveDiscussion = asyncHandler(async (req, res) => {
   try {
     const { courseId } = req.params;
     const { userId, discussion } = req.body;
-    console.log('Incoming Data:', { courseId, userId, discussion });
+    // console.log('Incoming Data:', { courseId, userId, discussion });
 
     // Find the user making the comment (optional, if you need to verify user)
     const user = await userModel.findById(userId);
@@ -392,3 +309,11 @@ export const saveDiscussion = asyncHandler(async (req, res) => {
     res.status(500).json({ message: 'An error occurred', error });
   }
 });
+
+
+export const getTutorDetails = asyncHandler(async (req,res) =>{
+  const {tutorId} = req.params;
+  console.log(tutorId);
+  const user = await userModel.findById(tutorId);
+  res.status(201).json({ message: 'User Found ', user });
+})
