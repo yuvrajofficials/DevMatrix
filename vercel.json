@@ -1,2 +1,7 @@
-{ "version": 2, "rewrites": [{ "source": "/(.*)", "destination": "/" }],"buildCommand": "next build"
- }
+{
+    "version": 2,
+    "rewrites": [
+      { "source": "/(.*)", "destination": "/" }
+    ]
+  }
+  
