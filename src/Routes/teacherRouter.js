@@ -1,5 +1,5 @@
 import express from "express";
-import {createCourse, getCourse, getMyCreatedCourse} from '../Controllers/courseController.js'
+import {createCourse, getCourse, getMyCreatedCourse,getTeacherCourses} from '../Controllers/courseController.js'
 import { getVideo, uploadResource, uploadVideo } from "../Controllers/videoController.js";
 import {  validateToken } from "../Middlewares/validateToken.js";
 import { uploadV,uploadR } from "../Middlewares/multerMiddleware.js";
@@ -19,6 +19,7 @@ teacherRouter.post('/upload-video',validateToken,uploadV,uploadVideo)
 teacherRouter.post('/get-video',validateToken,getVideo)
 // teacherRouter.post('/upload-resource', validateToken, uploadR.single('resource'), uploadResource);
 teacherRouter.post('/create-blog',uploadR.single('resource'), createBlog);
+teacherRouter.get('/get-allcourse/:owner',getTeacherCourses)
 
 
 

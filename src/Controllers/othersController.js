@@ -57,3 +57,14 @@ export const getAllCourse = asyncHandler(async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
+
+  export const getAllCartItem = asyncHandler(async (req, res) => {
+    try {
+      const courses = await userModel.find({}).populate('owner');
+      res.status(200).json({ success: true, data: courses });
+    } catch (error) {
+      console.error('Error in Getting Courses:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+  

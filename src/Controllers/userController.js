@@ -3,7 +3,7 @@ import { comparePassword, hashPassword } from "../Helpers/userHelper.js";
 import JWT from "jsonwebtoken";
 import { compare } from "bcrypt";
 import { ApiResponse } from "../Utils/APIResponse.js";
-import { ApiError } from "../Utils/ApiError.js";
+import ApiError from "../Utils/APIError.js"
 import { response } from "express";
 
 const registerController = async (req, res) => {

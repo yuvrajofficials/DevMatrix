@@ -6,7 +6,7 @@ import { uploadOnCloudinary } from "../Utils/Cloudanary.js";
 import { addToCart,getAllCourse, getCourseDetails, getSpecificDiscussion, getTutorDetails, saveDiscussion } from "../Controllers/courseController.js";
 import { validateToken } from "../Middlewares/validateToken.js";
 import { getAllBlogs, getSpecificComment, saveComment } from "../Controllers/blogController.js";
-import { getActualCount } from "../Controllers/othersController.js";
+import { getActualCount, getAllCartItem } from "../Controllers/othersController.js";
 
 
 const app = express();
@@ -24,6 +24,8 @@ userRouter.post('/register', registerController)
 // userRouter.post('/upload-file', upload.single('file'),uploadOnCloudinary);
 
 userRouter.post('/save-notification',saveNotification)
+userRouter.post('/add-to-cart/:itemId',addToCart);
+userRouter.get('/my-add-cart',getAllCartItem)
 userRouter.get('/get-notification',getNotification)
 userRouter.post('/save-reviews',saveReviews)
 userRouter.get('/get-reviews',getReviews)
@@ -43,7 +45,9 @@ userRouter.get('/get-allblogs', getAllBlogs);
 
 
 userRouter.get('/countdata',getActualCount);
-userRouter.post('/:tutorId',getTutorDetails);
+
+
+
 
 
 

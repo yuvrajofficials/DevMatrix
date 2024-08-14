@@ -3,8 +3,8 @@ import asyncHandler from '../Utils/asyncHandler.js';
 import { ApiError } from "../Utils/ApiError.js";
 import { ApiResponse } from "../Utils/APIResponse.js";
 import { addCartModel, courseModel } from "../Models/courseModel.js";
-import slugify from "slugify";
 import { userModel } from "../Models/userModel.js";
+import slugify from "slugify";
 import mongoose from "mongoose";
 import { v2 as cloudinary } from "cloudinary";
 import multer from "multer";
@@ -97,6 +97,18 @@ export const createCourse = asyncHandler(async (req, res) => {
 export const getAllCourse = asyncHandler(async (req, res) => {
   try {
     const courses = await courseModel.find({}).populate('owner');
+    res.status(200).json({ success: true, data: courses });
+  } catch (error) {
+    console.error('Error in Getting Courses:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+export const getTeacherCourses = asyncHandler(async (req, res) => {
+  try {
+    const {owner} = req.params;
+    console.log(owner)
+    const courses = await courseModel.find({owner}).populate('owner');
     res.status(200).json({ success: true, data: courses });
   } catch (error) {
     console.error('Error in Getting Courses:', error);
@@ -312,8 +324,6 @@ export const saveDiscussion = asyncHandler(async (req, res) => {
 
 
 export const getTutorDetails = asyncHandler(async (req,res) =>{
-  const {tutorId} = req.params;
-  console.log(tutorId);
-  const user = await userModel.findById(tutorId);
-  res.status(201).json({ message: 'User Found ', user });
+  
+  
 })
