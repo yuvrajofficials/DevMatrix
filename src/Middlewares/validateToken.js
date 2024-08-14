@@ -1,5 +1,5 @@
 import { ApiResponse } from "../Utils/APIResponse.js";
-import { ApiError } from "../Utils/ApiError.js";
+import { ApiError } from "../Utils/APIError.js";
 import { userModel } from "../Models/userModel.js";
 import JWT from "jsonwebtoken";
 

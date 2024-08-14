@@ -1,6 +1,6 @@
 import express from "express";
 import asyncHandler from '../Utils/asyncHandler.js'; // Assuming this handles async errors
-import ApiError from "../Utils/APIError.js"
+import { ApiError } from "../Utils/APIError.js"; // Assuming you have a custom error class
 import { ApiResponse } from "../Utils/APIResponse.js"; // Assuming you have a custom response class
 import { resourceModel, videoModel } from "../Models/videoModel.js";
 import { courseModel } from "../Models/courseModel.js";

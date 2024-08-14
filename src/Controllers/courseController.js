@@ -1,6 +1,6 @@
 import express from "express";
 import asyncHandler from '../Utils/asyncHandler.js';
-import ApiError from "../Utils/APIError.js"
+import { ApiError } from "../Utils/APIError.js";
 import { ApiResponse } from "../Utils/APIResponse.js";
 import { addCartModel, courseModel } from "../Models/courseModel.js";
 import { userModel } from "../Models/userModel.js";
