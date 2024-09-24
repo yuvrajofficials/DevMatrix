@@ -19,6 +19,7 @@ var corsOptions = {
     origin: "*",
   }
 
+  
 app.use('/api/v1/users',cors(corsOptions), userRouter);
 app.use('/api/v1/teacher',cors(corsOptions), teacherRouter);
 // app.use('/api/v1/admin',cors(corsOptions), adminRouter);

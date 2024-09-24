@@ -106,9 +106,9 @@ export const getAllCourse = asyncHandler(async (req, res) => {
 
 export const getTeacherCourses = asyncHandler(async (req, res) => {
   try {
-    const {owner} = req.params;
+    const { owner } = req.params;
     console.log(owner)
-    const courses = await courseModel.find({owner}).populate('owner');
+    const courses = await courseModel.find({ owner }).populate('owner');
     res.status(200).json({ success: true, data: courses });
   } catch (error) {
     console.error('Error in Getting Courses:', error);
@@ -154,7 +154,7 @@ export const getMyCreatedCourse = asyncHandler(async (req, res) => {
     console.log(owner)
     const mycourses = await userModel.aggregate([
       {
-                "$match": {
+        "$match": {
           "$expr": {
             "$eq": [
               "$_id",
@@ -175,6 +175,14 @@ export const getMyCreatedCourse = asyncHandler(async (req, res) => {
           as: "mycourses"
         }
       },
+      // {
+      //   $lookup: {
+      //     from: "createmodulemodels", // Ensure this matches the actual collection name
+      //     localField: "_id",
+      //     foreignField: "owner",
+      //     as: "mycourses"
+      //   }
+      // },
       {
         $project: {
           mycourses: 1
@@ -188,7 +196,7 @@ export const getMyCreatedCourse = asyncHandler(async (req, res) => {
         $project: {
           "mycourses.title": 1,
           "mycourses._id": 1,
-
+          "mycourses.modules": 1,
 
         }
 
@@ -204,6 +212,69 @@ export const getMyCreatedCourse = asyncHandler(async (req, res) => {
   }
 });
 
+
+export const getMyCreatedModules = asyncHandler(async (req, res) => {
+    try {
+        const courseId = req.body.courseId; // Assuming courseId is passed in the request body
+ 
+        console.log("CourseId :",courseId)
+        const myModules = await courseModel.aggregate([
+            {
+                "$match": {
+                    "$expr": {
+                        "$eq": [
+                            "$_id",
+                            { "$toObjectId": courseId }
+                        ]
+                    }
+                }
+            },
+            {
+                "$project": {
+                    "modules": 1
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "createmodulemodels", // Ensure this is the correct collection name
+                    "localField": "modules",
+                    "foreignField": "_id", // Ensure this matches the field in your module collection
+                    "as": "moduleDetails"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$moduleDetails",
+                    "preserveNullAndEmptyArrays": true // Preserve if there are no module details
+                }
+            },
+            {
+                "$group": {
+                    "_id": null, // Grouping all results together
+                    "modules": {
+                        "$push": {
+                            "id": "$moduleDetails._id",
+                            "title": "$moduleDetails.title"
+                        }
+                    }
+                }
+            },
+            {
+                "$project": {
+                    "_id": 0, // Exclude the _id field from the final output
+                    "modules": 1
+                }
+            }
+        ]);
+
+        console.log(myModules);
+
+        res.status(200).json({ success: true, data: myModules });
+    } catch (error) {
+        console.error('Error in Getting User modules:', error);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
+    }
+});
 
 export const addToCart = asyncHandler(async (req, res) => {
   const { userId, courseId } = req.body;
@@ -236,9 +307,11 @@ export const getCourseDetails = asyncHandler(async (req, res) => {
   try {
     const { courseId } = req.body;
 
+
     const courseDetails = await courseModel.aggregate([
 
-      {        "$match": {
+      {
+        "$match": {
           "$expr": {
             "$eq": [
               "$_id",
@@ -248,7 +321,7 @@ export const getCourseDetails = asyncHandler(async (req, res) => {
             ]
           }
         }
-       },
+      },
       {
         $lookup: {
           from: "videomodels",
@@ -256,9 +329,15 @@ export const getCourseDetails = asyncHandler(async (req, res) => {
           foreignField: "_id",
           as: "videodetails"
         }
+      },{
+
+        $project:{
+          videodetails:1,
+        }
       }
 
     ])
+    console.log(courseDetails)
     res.status(200).json({ success: true, data: courseDetails });
   } catch (error) {
     console.error('Error in Getting Courses:', error);
@@ -272,7 +351,7 @@ export const getSpecificDiscussion = asyncHandler(async (req, res) => {
 
   try {
     const courseData = await courseModel.aggregate([
-  
+
 
     ]);
 
@@ -323,7 +402,43 @@ export const saveDiscussion = asyncHandler(async (req, res) => {
 });
 
 
-export const getTutorDetails = asyncHandler(async (req,res) =>{
-  
-  
+export const getTutorDetails = asyncHandler(async (req, res) => {
+
+
 })
+
+
+export const getAllPurchasedCourse = asyncHandler(async (req, res) => {
+  try {
+    const userId   = req.body.userId;
+    console.log(userId);
+    console.log("userId Printed")
+    const mypurchasedcourses = await userModel.aggregate(
+      [
+        {
+          "$match": {
+            "$expr": {
+              "$eq": [
+                "$_id",
+                {
+                  "$toObjectId": userId,
+                }
+              ]
+            }
+          }
+
+
+        },
+        {
+          $project: {
+            mycourses: 1,
+          }
+        }
+      ])
+    res.status(200).json({ success: true, data: mypurchasedcourses });
+
+  } catch (error) {
+    console.error('Error in Getting Courses:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});

@@ -19,6 +19,14 @@ const registerController = async (req, res) => {
       age,
     } = req.body;
 
+    console.log({ username,
+      fullname,
+      email,
+      password,
+      phone,
+      education,
+      gender,
+      age})
     //validations
     if (!username) {
       throw new ApiError(400, "Username is required");
@@ -76,7 +84,7 @@ const registerController = async (req, res) => {
 const loginController = async (req, res) => {
   try {
     const { userdata,password } = req.body;
-  
+    console.log({userdata,password})
     //validation
     if (!userdata || !password) {
       console.log(userdata,password);
@@ -110,6 +118,10 @@ const loginController = async (req, res) => {
         phone: user.phone,
         userId: user._id,
         logintype: user.logintype,
+        mycourses: user.mycourses,
+        mycart: user.mycart,
+
+
         token, 
 
       },

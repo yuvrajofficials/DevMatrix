@@ -2,7 +2,7 @@ import express from "express";
 import asyncHandler from '../Utils/asyncHandler.js'; // Assuming this handles async errors
 import { ApiError } from "../Utils/APIError.js"; // Assuming you have a custom error class
 import { ApiResponse } from "../Utils/APIResponse.js"; // Assuming you have a custom response class
-import { resourceModel, videoModel } from "../Models/videoModel.js";
+import { createModuleModel, resourceModel, videoModel } from "../Models/videoModel.js";
 import { courseModel } from "../Models/courseModel.js";
 import { uploadOnCloudinary } from "../Utils/Cloudanary.js";
 import {v2 as cloudinary} from "cloudinary";
@@ -12,55 +12,59 @@ import mongoose from "mongoose";
 import { userModel } from "../Models/userModel.js";
 
 
+
 const uploadVideo = asyncHandler(async (req, res) => {
-    const {
+  const {
+    title,
+    description,
+    isPublished,
+    owner,
+    moduleId,
+    course // Expecting courseId from the request body
+  } = req.body;
+  console.log("module_id",moduleId)
+  const videoFile = req.files.videoFile[0].path;
+  const thumbnail = req.files.thumbnail[0].path;
+ console.log(videoFile);
+  try {
+    // Upload video to Cloudinary
+    const videoResponse = await cloudinary.uploader.upload(videoFile, {
+      resource_type: "video",
+      folder: "videos"
+    });
+
+    // Upload thumbnail to Cloudinary
+    const thumbnailResponse = await cloudinary.uploader.upload(thumbnail, {
+      folder: "thumbnails"
+    });
+    // Create a new video document
+    const newVideo = new videoModel({
+      videoFile: videoResponse.secure_url,
+      thumbnail: thumbnailResponse.secure_url,
       title,
       description,
       isPublished,
+      moduleId,
       owner,
-      course // Expecting courseId from the request body
-    } = req.body;
+      course // Associate video with the course
+    });
 
-    const videoFile = req.files.videoFile[0].path;
-    const thumbnail = req.files.thumbnail[0].path;
-   console.log(videoFile);
-    try {
-      // Upload video to Cloudinary
-      const videoResponse = await cloudinary.uploader.upload(videoFile, {
-        resource_type: "video",
-        folder: "videos"
-      });
-  
-      // Upload thumbnail to Cloudinary
-      const thumbnailResponse = await cloudinary.uploader.upload(thumbnail, {
-        folder: "thumbnails"
-      });
-      // Create a new video document
-      const newVideo = new videoModel({
-        videoFile: videoResponse.secure_url,
-        thumbnail: thumbnailResponse.secure_url,
-        title,
-        description,
-        isPublished,
-        owner,
-        course // Associate video with the course
-      });
-  
-      const uploadedVideo = await newVideo.save();
-  
-      // Update the course to include the new video's ID
-      await courseModel.findByIdAndUpdate(course, { $push: { videos: uploadedVideo._id } });
-  
-      res.status(200).json(new ApiResponse(true, uploadedVideo));
-    } catch (error) {
-      console.error('Error uploading video:', error);
-      throw new ApiError(500, 'Internal Server Error');
-    } finally {
-      // Cleanup: Remove the local files after uploading to Cloudinary
-      fs.unlinkSync(videoFile);
-      fs.unlinkSync(thumbnail);
-    }
-  });
+    const uploadedVideo = await newVideo.save();
+
+    // Update the course to include the new video's ID
+    await courseModel.findByIdAndUpdate(course, { $push: { videos: uploadedVideo._id } });
+    await createModuleModel.findByIdAndUpdate(moduleId, { $push: { videos: uploadedVideo._id } });
+
+    res.status(200).json(new ApiResponse(true, uploadedVideo));
+  } catch (error) {
+    console.error('Error uploading video:', error);
+    throw new ApiError(500, 'Internal Server Error');
+  } finally {
+    // Cleanup: Remove the local files after uploading to Cloudinary
+    fs.unlinkSync(videoFile);
+    fs.unlinkSync(thumbnail);
+  }
+});
 
   // Get all courses
 const getVideo = asyncHandler(async (req, res) => {
@@ -98,6 +102,7 @@ const uploadResource = asyncHandler(async (req, res) => {
     const uploadedResource = await newResource.save();
 
     // Update the user to include the new resource's ID
+    
     await userModel.findByIdAndUpdate(userId, { $push: { resources: uploadedResource._id } });
 
     res.status(200).json(new ApiResponse(true, uploadedResource));
@@ -112,4 +117,94 @@ const uploadResource = asyncHandler(async (req, res) => {
 
 
 
-  export {uploadVideo,getVideo,uploadResource};
+const createModule = async (req, res) => {
+  const { title,courseId,owner } = req.body;
+
+
+console.log({title,courseId,owner })
+  try {
+    const createNewModule = new createModuleModel({ title,courseId,owner});
+
+    // const isModule = await createModuleModel.find(title);
+ 
+    // if (isModule) {
+    //   return res.status(200).json(new ApiResponse(true, "Module already created"));
+    // }
+    const saveModule = await createNewModule.save();
+
+    
+    await courseModel.findByIdAndUpdate(courseId, { $push: { modules: saveModule._id } });
+    
+    
+    res.status(200).json({ success: true, data: saveModule });
+  } catch (error) {
+    console.error('Error Creating Module:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+  
+
+
+
+export const getPurchasedCourseDetails = asyncHandler(async (req, res) => {
+  try {
+    const { courseId } = req.body;
+
+
+    const courseDetails = await courseModel.aggregate([
+  {
+  "$match": {
+    "$expr": {
+      "$eq": [
+        "$_id",
+        {
+          "$toObjectId": courseId,
+        }
+      ]
+    }
+  }
+},
+{
+  "$lookup": {
+    "from": "createmodulemodels",// The collection containing module details
+    "localField": "modules", // The array of module IDs in the course document
+    "foreignField": "_id", // The _id field in the module collection
+    "as": "moduleDetails" // This will create an array of module details in the result
+  }
+},
+{
+  "$unwind": "$moduleDetails" // Unwind to work on each module individually
+},
+{
+  "$lookup": {
+    "from": "videomodels", // The collection containing video details
+    "localField": "moduleDetails.videos", // Array of video IDs inside each module
+    "foreignField": "_id", // The _id field in the video collection
+    "as": "moduleDetails.videoDetails" // Place the video details inside each module
+  }
+},
+{
+  "$group": {
+    "_id": "$_id", // Group by the course _id
+    "title": { "$first": "$title" },
+    "creator": { "$first": "$creator" },
+    "modules": {
+      "$push": {
+        "module": "$moduleDetails", // Push the module details along with video details
+        "videos": "$moduleDetails.videoDetails" // Add the video details from the previous lookup
+      }
+    }
+  }
+}
+])
+console.log(courseDetails)
+res.status(200).json({ success: true, data: courseDetails });
+} catch (error) {
+console.error('Error in Getting Courses:', error);
+res.status(500).json({ error: 'Internal Server Error' });
+}
+});
+
+
+
+  export {uploadVideo,getVideo,uploadResource,createModule};

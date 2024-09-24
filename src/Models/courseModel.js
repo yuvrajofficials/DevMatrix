@@ -43,6 +43,13 @@ const courseSchema = new Schema({
       ref: "videoModel",
     },
   ],
+  modules:[
+    {
+
+      type: Schema.Types.ObjectId,
+      ref: "createModuleModel",
+    }
+  ]
 });
 
 export const courseModel = mongoose.model("courseModel", courseSchema);

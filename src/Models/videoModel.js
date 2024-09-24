@@ -48,17 +48,41 @@ export const videoModel = mongoose.model("videoModel", videoSchema);
 
 const resourceSchema = new Schema({
 
-  userId:{
-    type : Schema.Types.ObjectId,
-    ref:"userModel"
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: "userModel"
   },
-  title:{
+  title: {
     type: String
   },
-  resourceUrl:{
-    type : String
+  resourceUrl: {
+    type: String
   }
 
 })
 
-export const resourceModel = mongoose.model("resourceModel",resourceSchema);
+export const resourceModel = mongoose.model("resourceModel", resourceSchema);
+
+
+const moduleSchema = new Schema({
+
+  owner: {
+    type: Schema.Types.ObjectId,
+    ref: "userModel"
+  },
+  title: {
+    type: String
+  },
+  courseId: {
+    type: Schema.Types.ObjectId,
+    ref: "courseModel"
+  },
+  videos: [{
+    type: Schema.Types.ObjectId,
+    ref: "courseModel"
+  }]
+
+})
+
+export const createModuleModel = mongoose.model("createModuleModel", moduleSchema);
+

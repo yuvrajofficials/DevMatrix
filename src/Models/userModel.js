@@ -69,7 +69,12 @@ const userSchema = new Schema(
     logintype: {
       type: Number,
       default: 0
-    }
+    },
+    mycourses: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "courseModel",
+      }],
   },
   {
     timestamps: true,
