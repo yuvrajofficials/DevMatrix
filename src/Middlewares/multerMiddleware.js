@@ -34,6 +34,22 @@ const storage = multer.diskStorage({
 
 const uploadR = multer({ storage: storage });
 
-export { uploadV,uploadR };
+
+// Multer storage configuration for blog resources
+const resourceStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './public/temp'); // Store in temp directory before Cloudinary upload
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname); // Prevent file name conflicts
+  }
+});
+
+const uploadBlogResource = multer({
+  storage: resourceStorage,
+}); // Handle single resource upload
+
+// Export
+export { uploadV,uploadR,uploadBlogResource };
 
 

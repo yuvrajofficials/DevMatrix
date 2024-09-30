@@ -116,6 +116,53 @@ const uploadResource = asyncHandler(async (req, res) => {
 });
 
 
+// Upload blog resources controller
+const uploadBlogResources = asyncHandler(async (req, res) => {
+  const { title, userId } = req.body;
+  const resourceFile = req.file.path; // File uploaded temporarily to local storage
+
+  try {
+    // Upload the resource file to Cloudinary
+    const resourceUpload = await cloudinary.uploader.upload(resourceFile, {
+      folder: 'resources', // Cloudinary folder for resources
+    });
+
+    // Create a new resource document in MongoDB
+    const newResource = new resourceModel({
+      userId,
+      title,
+      resourceUrl: resourceUpload.secure_url, // URL from Cloudinary
+    });
+
+    const uploadedResource = await newResource.save();
+
+    // Update the user model with the new resource
+    await userModel.findByIdAndUpdate(userId, {
+      $push: { resources: uploadedResource._id },
+    });
+
+    // Respond with the secure URL of the uploaded resource
+    res.status(200).json(new ApiResponse(true, resourceUpload.secure_url));
+  } catch (error) {
+    console.error('Error uploading resource:', error);
+    throw new ApiError(500, 'Internal Server Error');
+  } finally {
+    // Cleanup: Remove the local file after uploading to Cloudinary
+    fs.unlinkSync(resourceFile);
+  }
+});
+
+
+const uploadedBlogResources = asyncHandler(async (req, res) => {
+  try {
+    const {userId} = req.params;
+    const resources = await resourceModel.find({userId}).populate([]);
+    res.status(200).json({ success: true, data: resources });
+  } catch (error) {
+    console.error('Error in Getting Videos:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 const createModule = async (req, res) => {
   const { title,courseId,owner } = req.body;
@@ -207,4 +254,4 @@ res.status(500).json({ error: 'Internal Server Error' });
 
 
 
-  export {uploadVideo,getVideo,uploadResource,createModule};
+  export {uploadVideo,getVideo,uploadResource,createModule,uploadBlogResources,uploadedBlogResources};

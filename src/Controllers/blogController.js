@@ -11,53 +11,57 @@ import multer from "multer";
 import fs from "fs";
 import { blogModel } from "../Models/blogModel.js";
 
-
-
 export const createBlog = asyncHandler(async (req, res) => {
-    const { title, abstract, userid, author, isPublished, comments } = req.body;
-    const resourceFile = req.file.path;
+  const { title, abstract, userId, author, isPublished, comments } = req.body;
 
-    try {
-        // Upload resource to Cloudinary
-        console.log("almost done")
-        const isExist = await blogModel.findOne({ title });
+  if (!req.file) {
+      return res.status(400).json({ error: 'Thumbnail is required.' });
+  }
+  
+  const resourceFile = req.file.path;
 
-        if (isExist) {
-            throw new ApiError(403, "Course Title Already Exists");
-        }
+  try {
+      const isExist = await blogModel.findOne({ title });
+      if (isExist) {
+          throw new ApiError(403, "Blog Title Already Exists");
+      }
 
-        const resourceUpload = await cloudinary.uploader.upload(resourceFile, {
-            folder: 'resources'
-        });
+      const resourceUpload = await cloudinary.uploader.upload(resourceFile, {
+          folder: 'resources'
+      });
 
-        const newBlog = new blogModel({
+      const newBlog = new blogModel({
+          title,
+          abstract,
+          userId,
+          author,
+          isPublished,
+          slug: slugify(title).toLowerCase(),
+          thumbnail: resourceUpload.secure_url
+      });
 
-            title,
-            abstract,
-            userid,
-            author,
-            isPublished,
-            comments,
-            slug: slugify(title).toLowerCase(),
-            thumbnail: resourceUpload.secure_url
-        })
-
-        // Create a new resource document
-
-
-        const createdBlog = await newBlog.save();
-
-        // Update the user to include the new resource's 
-
-        res.status(200).json({ success: true, data: createdBlog });
-    } catch (error) {
-        console.error('Error in Creating Course:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    } finally {
-        // Cleanup: Remove the local file after uploading to Cloudinary
-        fs.unlinkSync(resourceFile);
-    }
+      await newBlog.save();
+      res.status(201).json({ message: 'Blog created successfully!' });
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
 });
+
+
+export const getTeacherBlogs = asyncHandler(async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log(userId)
+    const blogs = await blogModel.find({ userId });
+    console.log(blogs)
+    res.status(200).json({ success: true, data: blogs });
+  } catch (error) {
+    console.error('Error in Getting Blogs:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
 
 export const getAllBlogs = asyncHandler(async (req, res) => {
     try {
