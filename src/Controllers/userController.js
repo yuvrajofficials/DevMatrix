@@ -78,6 +78,42 @@ const registerController = async (req, res) => {
   }
 };
 
+const getLoginDetails = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Find user in the database
+    const user = await userModel.findOne({ _id: userId });
+
+    // If no user is found, return 404
+    if (!user) {
+      return res.status(404).send({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Respond with the user details
+    res.status(200).send({
+      success: true,
+      message: "Login successful",
+      user: user,
+    });
+
+  } catch (error) {
+    // Log the error for debugging
+    console.error(error);
+
+    // Send a 500 status and a proper error message
+    return res.status(500).send({
+      success: false,
+      message: "Server error, please try again later",
+      error: error.message,
+    });
+  }
+};
+
+
 //POST LOGIN
 const loginController = async (req, res) => {
   try {
@@ -136,4 +172,4 @@ const uploadedVideo = ()=>{
 
 
 
-export { registerController, loginController,uploadedVideo };
+export { registerController, loginController,uploadedVideo,getLoginDetails };

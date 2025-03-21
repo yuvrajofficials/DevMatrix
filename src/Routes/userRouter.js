@@ -1,5 +1,5 @@
 import express from "express";
-import {registerController, loginController,uploadedVideo} from '../Controllers/userController.js'
+import {registerController, loginController,uploadedVideo, getLoginDetails} from '../Controllers/userController.js'
 import {saveNotification,getNotification, getReviews, saveReviews} from '../Controllers/notificationController.js';
 
 import { uploadOnCloudinary } from "../Utils/Cloudanary.js";
@@ -19,6 +19,9 @@ const userRouter = express.Router();
 
 userRouter.post('/login',loginController)
 userRouter.post('/register', registerController)
+
+
+userRouter.get('/get-profile/:userId',getLoginDetails);
 
 // user contact form route
 
