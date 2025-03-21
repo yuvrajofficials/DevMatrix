@@ -1,6 +1,12 @@
 import mongoose, { Schema } from "mongoose";
 
 const notificationSchema = new Schema({
+  from : {
+    type: String,
+  },
+  to: {
+    type: String,
+  },
   name: {
     type: String,
   },

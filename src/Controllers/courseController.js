@@ -292,15 +292,43 @@ export const addToCart = asyncHandler(async (req, res) => {
     }
 
     // Add the course to the user's cart        
-    user.mycart.push(courseId);
+    const cart_id = user.mycart.push(courseId);
     await user.save();
 
-    res.status(200).json(new ApiResponse(true, "Course added to cart successfully"));
+    res.status(200).json(new ApiResponse(true,"Course added to cart successfully"));
   } catch (error) {
     console.error('Error adding to cart', error);
     throw new ApiError(500, 'Internal Server Error');
   }
 });
+
+export const removeFromCart = asyncHandler(async (req, res) => {
+  const { userId, courseId } = req.body;
+
+  try {
+    const user = await userModel.findById(userId);
+
+    if (!user) {
+      return res.status(404).json(new ApiResponse(false, "User not found"));
+    }
+
+    // Check if the course exists in the user's cart
+    if (!user.mycart.includes(courseId)) {
+      return res.status(400).json(new ApiResponse(false, "Course not found in cart"));
+    }
+
+    // Remove the course from the cart
+    user.mycart = user.mycart.filter(id => id.toString() !== courseId.toString());
+    await user.save();
+
+    res.status(200).json(new ApiResponse(true, "Course removed from cart successfully"));
+  } catch (error) {
+    console.error('Error removing from cart', error);
+    throw new ApiError(500, 'Internal Server Error');
+  }
+});
+
+
 
 
 export const getCourseDetails = asyncHandler(async (req, res) => {

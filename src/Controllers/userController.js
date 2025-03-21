@@ -43,9 +43,7 @@ const registerController = async (req, res) => {
     if (!phone) {
       throw new ApiError(400, "Phone is required");
     }
-    if (!gender) {
-      throw new ApiError(400, "Gender is required");
-    }
+    
     //check user
     const existingUser = await userModel.findOne({ email });
     //existing user

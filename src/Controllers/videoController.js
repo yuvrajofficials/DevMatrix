@@ -190,6 +190,61 @@ console.log({title,courseId,owner })
   }
 }
   
+export const getPurchasedCourses = asyncHandler(async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    const user = await userModel.findById(userId).select("mycourses");
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const courseDetails = await courseModel.aggregate([
+      {
+        $match: {
+          _id: { $in: user.mycourses.map((id) => id) },
+        },
+      },
+      {
+        $lookup: {
+          from: "createmodulemodels",
+          localField: "modules",
+          foreignField: "_id",
+          as: "moduleDetails",
+        },
+      },
+      {
+        $unwind: {
+          path: "$moduleDetails",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "videomodels",
+          localField: "moduleDetails.videos",
+          foreignField: "_id",
+          as: "moduleDetails.videoDetails",
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          title: { $first: "$title" },
+          creator: { $first: "$creator" },
+          category: { $first: "$category" },
+          thumbnail: { $first: "$thumbnail" },
+          modules: { $push: "$moduleDetails" },
+        },
+      },
+    ]);
+
+    res.status(200).json({ success: true, data: courseDetails });
+  } catch (error) {
+    console.error("Error fetching courses:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+});
 
 
 
