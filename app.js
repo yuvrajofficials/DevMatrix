@@ -49,5 +49,15 @@ app.get('/',getHome)
 
 
 
+setInterval(() => {
+  console.log("Keep-alive ping");
+  // You can make a GET request or hit an endpoint to keep the server active
+  // For instance, hitting the home route here
+  fetch("https://your-render-app-url.com") // Replace with your app's URL
+    .then((response) => response.text())
+    .then((data) => console.log("Server is still active"))
+    .catch((error) => console.log("Error keeping server alive", error));
+}, 300000); // Sends a request every 5 minutes (300000 ms)
+
 
 export { app }
